@@ -1,4 +1,4 @@
-package com.sanna.disarm.app;
+package com.disarm.sanna.pdm.DisarmConnect;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -12,6 +12,7 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -19,10 +20,13 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.disarm.sanna.pdm.R;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Timer;
 
@@ -50,7 +54,7 @@ public class MyService extends Service {
     private static final String TAG3 = "Toggler";
     private static final String TAG4 = "Searching DB";
     private int addIncreasewifi = 5000,wifiIncrease=5000,hpIncrease=5000,addIncreasehp = 0;
-
+    private final IBinder myServiceBinder = new MyServiceBinder();
     private BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
         @Override
         public void onReceive(Context arg0, Intent intent) {
@@ -68,18 +72,24 @@ public class MyService extends Service {
 
             for(int i = 0; i < wifiScanList.size(); i++){
                 wifis[i] = String.valueOf(wifiScanList.get(i));
+                Log.v("networks", wifiScanList.get(i).SSID);
             }
 
         }
     }
 
-    @org.jetbrains.annotations.Nullable
+
     @Override
     public IBinder onBind(Intent intent) {
 
-        return null;
+        return myServiceBinder;
     }
-
+    public class MyServiceBinder extends Binder {
+        public MyService getService() {
+            // Return this instance of SyncService so activity can call public methods
+            return MyService.this;
+        }
+    }
     @Override
     public void onCreate() {
         super.onCreate();
@@ -112,11 +122,12 @@ public class MyService extends Service {
         handler = new Handler();
         handler.post(Timer_Toggle);
         handler.post(WifiConnect);
-        //handler.post(searchingDisarmDB);
+        handler.post(searchingDisarmDB);
+
 
         Notification n =
                 new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.notification_icon)
+                        //.setSmallIcon(R.drawable.notification_icon)
                         .setContentTitle("DisarmConnect Service")
                         .setContentText("Service Started")
                         .setAutoCancel(false)
@@ -177,7 +188,7 @@ public class MyService extends Service {
 
                         if (splitted != null) {
                             if (splitted[3].matches("..:..:..:..:..:..")) {
-                                Process p1 = java.lang.Runtime.getRuntime().exec("ping -c 1 -t 1 " + splitted[0]);
+                                Process p1 = Runtime.getRuntime().exec("ping -c 1 -t 1 " + splitted[0]);
                                 int returnVal = p1.waitFor();
                                 isReachable = (returnVal == 0);
 
@@ -346,7 +357,7 @@ public class MyService extends Service {
         }
         //wifiState = false;
         // WifiState - 1 (Is Hotspot) || 0 - (CheckHotspot)
-        if(wifiState <= 0.25 && level > 25 ) {
+        if(wifiState <= 0.50 && level > 25 ) {
             Log.v(TAG1,"hptoggling for " +String.valueOf(addIncreasehp));
             addIncreasehp += hpIncrease;
             wifi.setWifiEnabled(false);

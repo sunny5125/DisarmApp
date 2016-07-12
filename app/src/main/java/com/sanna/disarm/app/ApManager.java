@@ -1,4 +1,4 @@
-package com.sanna.disarm.app;
+package com.disarm.sanna.pdm.DisarmConnect;
 
 /**
  * Created by sanna on 2/12/15.
@@ -7,10 +7,13 @@ package com.sanna.disarm.app;
 import android.content.Context;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
+import android.util.Log;
 
 import java.lang.reflect.Method;
 
 public class ApManager {
+
+    private static final String TAG = "AP Creation";
 
     //check whether wifi hotspot on or off
     public static boolean isApOn(Context context) {
@@ -38,11 +41,16 @@ public class ApManager {
             try {
                 Method getConfigMethod = wifimanager.getClass().getMethod("getWifiApConfiguration");
                 WifiConfiguration wifiConfig = (WifiConfiguration) getConfigMethod.invoke(wifimanager);
-
+                wifiConfig.allowedAuthAlgorithms.clear();
+                wifiConfig.allowedGroupCiphers.clear();
+                wifiConfig.allowedKeyManagement.clear();
+                wifiConfig.allowedPairwiseCiphers.clear();
+                wifiConfig.allowedProtocols.clear();
                 wifiConfig.SSID = "DisarmHotspot";
+                wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
 
-                Method setConfigMethod = wifimanager.getClass().getMethod("setWifiApConfiguration", WifiConfiguration.class);
-                setConfigMethod.invoke(wifimanager, wifiConfig);
+                Method setWifiApMethod = wifimanager.getClass().getMethod("setWifiApEnabled", WifiConfiguration.class, boolean.class);
+                boolean apstatus=(Boolean) setWifiApMethod.invoke(wifimanager, wifiConfig,true);
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -56,4 +64,5 @@ public class ApManager {
         }
         return false;
     }
+
 }
