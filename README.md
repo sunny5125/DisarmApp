@@ -1,4 +1,2 @@
 # DisarmApp
-This is final integration DisarmConnect Service and PDM App 
- 
- Work Under Progress
+Implementation of Communication Medium for Challenge Network Scenario, Developing reliable communication medium for mobile devices during Post Disaster situation (DisarmConnect).
